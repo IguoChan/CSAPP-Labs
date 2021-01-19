@@ -143,7 +143,7 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return ~(x&y)&~(~x&~y);
+    return ~(x&y)&~(~x&~y);
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -152,7 +152,7 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-  return 1 << 31;
+    return 1 << 31;
 }
 //2
 /*
@@ -163,7 +163,16 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+    int a = x + 1;       // if x == 0x7fffffff, a = 80000000
+    int b = ~(x + a); // b = 0
+    int c = !a;       // if x == 0xffffffff, a = 0, c = 1; otherwise c = 0
+    int d = b + c;    // if x == 0x7fffffff, d = 0; otherwise d != 0
+    return !d;
+    // int y = ~x;		// if x == 0x7fffffff, y = 0x80000000
+    // x = ~(x + y);		// x = 0
+    // y = !y;			// exclude if x == 0xffffffff, then 
+    // x = x + y;
+    return !x;
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -174,7 +183,12 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+    int mask = 0x55;
+    mask = (mask << 8) + mask;
+    mask = (mask << 16) + mask;
+    x = x | mask;
+    x = ~x;
+    return !x;
 }
 /* 
  * negate - return -x 
@@ -184,7 +198,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+    return ~x + 1;
 }
 //3
 /* 
@@ -197,7 +211,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+    int Tmin = 1 << 31;
+    int up = ~(Tmin | 0x39);
+    int dw = ~0x2F;
+    up = (up + x) >> 31;
+    dw = (dw + x) >> 31;
+    return !(up | dw);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -207,7 +226,8 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+    x = ~!x + 1;                // if x == 0, ~!x + 1 = -1(0xffffffff); if x != 0, ~!x + 1 = 0
+    return (~x & y) | (x & z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -217,7 +237,14 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+    int bitXor;
+    int neg_x = ~x + 1;                     // -x
+    int y_minus_x = y + neg_x;              // y-x
+    int sign = y_minus_x >> 31;             // y-x的符号，无需&1，后面取的是非
+    x = x >> 31;                            // x的符号
+    y = y >> 31;                            // y的符号
+    bitXor = (x ^ y) & 1;               // x和y符号相同标志位，相同时为0不同时为1
+    return ((!bitXor)&(!sign))|(bitXor&x);  // 符号相同看差值符号，符号不同正数为大
 }
 //4
 /* 
@@ -229,7 +256,7 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+    return ((x | (~x + 1)) >> 31) + 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -244,7 +271,21 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+    int b16,b8,b4,b2,b1,b0;
+    int sign=x>>31;
+    x = (sign&~x)|(~sign&x);
+    b16 = !!(x>>16)<<4;//高十六位是否有1
+    x = x>>b16;//如果有（至少需要16位），则将原数右移16位
+    b8 = !!(x>>8)<<3;//剩余位高8位是否有1
+    x = x>>b8;//如果有（至少需要16+8=24位），则右移8位
+    b4 = !!(x>>4)<<2;//同理
+    x = x>>b4;
+    b2 = !!(x>>2)<<1;
+    x = x>>b2;
+    b1 = !!(x>>1);
+    x = x>>b1;
+    b0 = x;
+    return b16+b8+b4+b2+b1+b0+1;//+1表示加上符号位
 }
 //float
 /* 
@@ -259,7 +300,15 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+    unsigned f = uf;
+    // 如果阶码为0，尾数左移一位即为乘以2
+    if ((f & 0x7f800000) == 0)
+        f = ((f & 0x007fffff) << 1) | (0x80000000 & f);
+    // 如果阶码不为0，且非全1，则阶码加1即可
+    else if ((f & 0x7f800000) != 0x7f800000)
+        f = f + 0x00800000;
+    // 如果阶码全1，则直接返回f即可，因为都是无穷大
+    return f;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -274,7 +323,16 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+    int sign = uf >> 31;                        // 得到符号
+    int E = ((uf & 0x7f800000) >> 23) - 127;    // 得到E
+    int M = (uf & 0x007fffff) | 0x00800000;     // 得到M 其实是真实的小数左移23，也就是
+    if (!(uf & 0x7fffffff)) return 0;           // 如果浮点值本来就是全0，那返回0
+    if (E >= 31) return 0x80000000;             // 如果真实的指数值大于等于31，则超出表达范围
+    if (E < 0) return 0;                        // 如果是小数，则返回0
+    if (E > 23) M = M << (E - 23);              // 如果E>23，则该数还得继续扩大2^(E-23)倍，即左移E-23位
+    else M = M >> (23 - E);                     // 如果E<23，则该数还得缩小2^(23-E)倍，即右移23-E位
+    if (!(M >> 31) ^ sign) return M;            // 如果M和uf符号相同，则返回M
+    else return ~M + 1;                         // 如果M和uf符号不同，则返回-M
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -290,5 +348,13 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+    int exp = 127 + x;
+    int i = 149 + x;
+    if (x >= -149 && x <= -127)
+        return 1 << i;
+    if (exp < 0)
+        return 0;
+    if (exp >= 255)
+        return 0x7f800000;
+    return exp << 23;
 }
