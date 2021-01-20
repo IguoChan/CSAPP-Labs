@@ -163,15 +163,10 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-    int a = x + 1;       // if x == 0x7fffffff, a = 80000000
-    int b = ~(x + a); // b = 0
-    int c = !a;       // if x == 0xffffffff, a = 0, c = 1; otherwise c = 0
-    int d = b + c;    // if x == 0x7fffffff, d = 0; otherwise d != 0
-    return !d;
-    // int y = ~x;		// if x == 0x7fffffff, y = 0x80000000
-    // x = ~(x + y);		// x = 0
-    // y = !y;			// exclude if x == 0xffffffff, then 
-    // x = x + y;
+    int y = x + 1;		// if x == 0x7fffffff, y = 0x80000000
+    x = ~(x + y);		// x = 0
+    y = !y;			// exclude if x == 0xffffffff, then 
+    x = x + y;
     return !x;
 }
 /* 
