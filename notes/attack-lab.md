@@ -68,7 +68,7 @@ PASS: Would have posted the following:
 	result	1:PASS:0xffffffff:ctarget:1:00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 C0 17 40
 ```
 用图表示level1如下所示：
-<div align=center><img src="/img/attack-lab-ph1-level1.jpg" width = 70% height = 70% /></div>
+<div align=center><img src="./img/attack-lab-ph1-level1.jpg" width = 70% height = 70% /></div>
 
 ### level 2
 这个阶段的解题思路和上面是类似的，我们还是需要拦截程序流，跳转到touch2函数，但是还需要满足touch2的输入val=cookie（0x59b997fa），如下：
@@ -151,7 +151,7 @@ PASS: Would have posted the following:
   result  1:PASS:0xffffffff:ctarget:2:48 C7 C7 FA 97 B9 59 68 EC 17 40 00 C3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 78 DC 61 55 
 ```
 用图表示level2如下所示，我们应该庆幸作者预留了40个byte大小的位置，因为当开始执行从栈顶注入的代码时，栈指针为`0x5561dca0`，此时执行`pushq $0x4017ec`时，栈指针会变为`0x5561dc98`，如果预留了小于24个字节大小时，执行`pushq $0x4017ec`时会冲掉`0x5561dc80`，就无法到`retq`语句了。
-<div align=center><img src="/img/attack-lab-ph1-level2.jpg" width = 70% height = 70% /></div>
+<div align=center><img src="./img/attack-lab-ph1-level2.jpg" width = 70% height = 70% /></div>
 
 ### level 3
 这个level考察的依然是代码注入，其函数如下：
@@ -225,7 +225,7 @@ PASS: Would have posted the following:
   result  1:PASS:0xffffffff:ctarget:3:48 C7 C7 A8 DC 61 55 68 FA 18 40 00 C3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 78 DC 61 55 00 00 00 00 35 39 62 39 39 37 66 61 00 
 ```
 用图表示如下所示：
-<div align=center><img src="/img/attack-lab-ph1-level3.jpg" width = 70% height = 70% /></div>
+<div align=center><img src="./img/attack-lab-ph1-level3.jpg" width = 70% height = 70% /></div>
 
 ## PART II: Return-Oriented Programming
 代码注入在这个部分可能就不好使了，因为现代编译器和操作系统实现了许多机制，以避免遭受缓冲区溢出的攻击，如writeup所说，其采取了以下方式去阻挠代码注入攻击：
@@ -233,7 +233,7 @@ PASS: Would have posted the following:
 2. 限制可执行代码区域：会将保存在栈的内存部分标记为不可执行，因此将程序注入到栈内，也将会爆出segmentation fault。
 
 然而，我们可以通过执行现有代码而不是注入新代码来在程序中完成有用的事情，这种方式成为ROP(Return-Oriented Programming)。其策略是在现有程序中标识由一个或多个指令以及指令ret组成的字节序列，这种段称为*gadget*，如下图所示：
-<div align=center><img src="/img/gadget.JPG" width = 50% height = 50% /></div>
+<div align=center><img src="./img/gadget.JPG" width = 50% height = 50% /></div>
 
 后续writeup还举了一个例子，感兴趣的同学可以去看看，我们直接跳到level2。
 
@@ -256,7 +256,7 @@ PASS: Would have posted the following:
     color: #999;
     padding: 2px;">表A</div>
   <br>
-  <img src="/img/popq-gadgets.JPG" width = 70% height = 70% />  
+  <img src="./img/popq-gadgets.JPG" width = 70% height = 70% />  
 </div>
 
 观察下表，能mov到%rdi的指令是最后一列：
@@ -266,7 +266,7 @@ PASS: Would have posted the following:
     color: #999;
     padding: 2px;">表B</div>
   <br>
-  <img src="/img/movq-gadgets.JPG" width = 100% height = 100% />
+  <img src="./img/movq-gadgets.JPG" width = 100% height = 100% />
 </div>
 
 经过排查，只有满足以下指令的`48 89 c7`和`58`字段被找到：
@@ -389,7 +389,7 @@ PASS: Would have posted the following:
 ```
 
 其实就是排列组合两行地址，图我们就不画那么多了，针对最后一种情况画个图，如下所示：
-<div align=center><img src="/img/attack-lab-ph2-level2.jpg" width = 70% height = 70% /></div>
+<div align=center><img src="./img/attack-lab-ph2-level2.jpg" width = 70% height = 70% /></div>
 
 ### level 3
 在这一阶段中，我们需要做的就是把字符串的起始地址传送到%rdi，然后调用touch3函数。
@@ -447,7 +447,7 @@ PASS: Would have posted the following:
     color: #999;
     padding: 2px;">表C</div>
   <br>
-  <img src="/img/movl-gadgets.JPG" width = 100% height = 100% />
+  <img src="./img/movl-gadgets.JPG" width = 100% height = 100% />
 </div>
 
   1) 如上表所示，在farm中，以%eax为源寄存器的操作码，且不冲击%edi的只有`movl %eax, %edx`的操作码`89 c2`了，所以满足这一小步的地址：0x4019dd。
@@ -483,7 +483,7 @@ PASS: Would have posted the following:
 执行步骤1时，%rsp所指位置已经指向了步骤2的位置，根据以上分析，从步骤三开始需要指令地址占据栈区的有6个，偏移量占据一行，touch3占据一行，所以中间至少需要隔绝8行（一行64位），然后将字符串首地址放在之上，即偏移量为`9 * 8 = 72`，所以填写十六进制0x48。
 
 根据以上分析，我们可以画出一种解法的图如下所示：
-<div align=center><img src="/img/attack-lab-ph2-level3.jpg" width = 70% height = 70% /></div>
+<div align=center><img src="./img/attack-lab-ph2-level3.jpg" width = 70% height = 70% /></div>
 
 所以我们填充的数字如下所示：
 ```

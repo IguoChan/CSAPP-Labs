@@ -4,7 +4,7 @@
 ### 1.1 需求分析
 根据书本的知识，高速缓存块基本如下所示，
 <div align=center>
-  <img src="/img/cache.jpg" width = 80% height = 80% />
+  <img src="./img/cache.jpg" width = 80% height = 80% />
   <br>
   <div style="color:orange;
     display: inline-block;
@@ -31,7 +31,7 @@ typedef struct
 ### 1.2 基本流程
 设计代码的基本流程如下所示。
 <div align=center>
-  <img src="/img/cache-pro.jpg" width = 100% height = 100% />
+  <img src="./img/cache-pro.jpg" width = 100% height = 100% />
   <br>
   <div style="color:orange;
     display: inline-block;
